@@ -17,8 +17,17 @@ router.post('/login', userController.login);
 //NOTE: Using the logout function from the userController file
 router.post('/logout', userController.logout);
 
+//? Profile related routes
+//NOTE: Using the profile function from the userController file
+router.get('/profile/:username', userController.ifUserExists, userController.profilePostsScreen);
+
 //? Posts related routes
 // NOTE: Using the create posts function from the postController.js
-router.get('/create-post', postController.viewCreateScreen);
+// mustBeLoggedIn is a function that controls if the user exists or not
+router.get('/create-post', userController.mustBeLoggedIn, postController.viewCreateScreen);
+// NOTE: Submiting posts, calling the function from postController file
+router.post('/create-post', userController.mustBeLoggedIn, postController.create);
+// NOTE: viewing single posts
+router.get('/post/:id', postController.viewSingle);
 
 module.exports = router;

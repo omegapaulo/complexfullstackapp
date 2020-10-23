@@ -2,12 +2,10 @@
 const express = require('express');
 // NOTE: Session for data persistence in the browser or database
 const session = require('express-session');
-// NOTE: A package to set flash messages (tell the user if there is an error)
-const flash = require('connect-flash');
 // NOTE: Adding the cookie to our database
 const MongoStore = require('connect-mongo')(session);
-// NOTE: Requiring router form router file
-const router = require('./router');
+// NOTE: A package to set flash messages (tell the user if there is an error)
+const flash = require('connect-flash');
 // NOTE: Using express app
 const app = express();
 
@@ -24,11 +22,21 @@ const sessionOptions = session({
   },
 });
 
+// NOTE: Telling express app to use session
+app.use(sessionOptions);
 // NOTE: Telling express to use flash
 app.use(flash());
 
-// NOTE: Telling express app to use session
-app.use(sessionOptions);
+// NOTE: Creating a middleware function to use for all routes user verifications
+//! Must always be before the router constant to work
+app.use(function (req, res, next) {
+  res.locals.user = req.session.user;
+  next();
+});
+
+// NOTE: Requiring router form router file
+const router = require('./router');
+
 // NOTE: Express boiler plate, must use in all express app
 // NOTE: tells express to add our user submit data to express so we can use it in request.body
 // NOTE: App receives a traditional html form submit

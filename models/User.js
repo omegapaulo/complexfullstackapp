@@ -9,11 +9,17 @@ const md5 = require('md5');
 
 // console.log(usersCollection);
 
-const User = function (data) {
+const User = function (data, getAvatar) {
   // NOTE: Receiving the user input data from the userController.js file
   this.data = data;
   // NOTE: Receiving all the errors and pushing it to the array
   this.errors = [];
+  if (getAvatar == undefined) {
+    getAvatar = false;
+  }
+  if (getAvatar) {
+    this.getAvatar();
+  }
 };
 
 User.prototype.cleanUp = function () {
@@ -100,7 +106,7 @@ User.prototype.login = function () {
         if (attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
           this.data = attemptedUser;
           // console.log(this.data);
-          this.getUserAvatar();
+          this.getAvatar();
           resolve('congrats');
         } else {
           reject('Invalid username and password');
@@ -126,7 +132,7 @@ User.prototype.register = function () {
       this.data.password = bcrypt.hashSync(this.data.password, salt);
       // NOTE: Inserting the data to the database after hashing
       await usersCollection.insertOne(this.data);
-      this.getUserAvatar();
+      this.getAvatar();
       resolve();
     } else {
       reject(this.errors);
@@ -134,7 +140,8 @@ User.prototype.register = function () {
   });
 };
 
-User.prototype.getUserAvatar = function () {
+User.prototype.getAvatar = function () {
   this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`;
 };
+
 module.exports = User;
