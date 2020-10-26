@@ -144,4 +144,36 @@ User.prototype.getAvatar = function () {
   this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`;
 };
 
+User.findByUsername = function (username) {
+  return new Promise(function (resolve, reject) {
+    // NOTE: Making sure we getting only strings from the request coming from the browser
+    if (typeof username != 'string') {
+      reject();
+      return;
+    }
+    // NOTE: finding the user from the database
+    usersCollection
+      .findOne({
+        username: username,
+      })
+      .then(function (userDoc) {
+        console.log(userDoc);
+        if (userDoc) {
+          // NOTE: Making a new userDoc from the userDoc param
+          // NOTE: The true param gives us the avatar
+          userDoc = new User(userDoc, true);
+          console.log(userDoc);
+          // NOTE: Specifying what i want from the userDoc that will be shown
+          userDoc = { _id: userDoc.data._id, username: userDoc.data.username, avatar: userDoc.avatar };
+          resolve(userDoc);
+        } else {
+          reject();
+        }
+      })
+      .catch(function () {
+        reject();
+      });
+  });
+};
+
 module.exports = User;

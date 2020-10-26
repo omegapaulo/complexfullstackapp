@@ -1,5 +1,7 @@
 // NOTE: Requiring the user constructor function from the models folder
 const User = require('../models/User');
+// NOTE: Requiring the post constructor function from the models folder
+const Post = require('../models/Posts');
 
 // NOTE: A function to check if the user is logged in or not
 exports.mustBeLoggedIn = function (req, res, next) {
@@ -81,11 +83,36 @@ exports.home = function (req, res) {
   }
 };
 
+// NOTE: User profile screen, showing the useer's profile
 exports.ifUserExists = function (req, res, next) {
   console.log(req.params.username);
-  next();
+  // NOTE: Finding the user by username from the request of the browser
+  User.findByUsername(req.params.username)
+    .then(function (userDocument) {
+      console.log(userDocument);
+      // NOTE: creating a new profileUser property inside the request and store the userDocument into it to pass in another function
+      req.profileUser = userDocument;
+      next();
+    })
+    .catch(function (error) {
+      res.render('404');
+    });
 };
 
+// NOTE: User profile posts screen, showing the useer's profile posts
 exports.profilePostsScreen = function (req, res) {
-  res.render('profile');
+  // NOTE: Ask our post model for posts by user ids
+  Post.findByAuthorId(req.profileUser._id)
+    .then(function (posts) {
+      // NOTE: Receiving the userDocument stored in the request object  and passing it to the render function as and object and passing them to the profile.ejs templöate
+      res.render('profile', {
+        // NOTE: receiving the user posts and display it to ui
+        posts: posts,
+        profileUsername: req.profileUser.username,
+        profileAvatar: req.profileUser.avatar,
+      });
+    })
+    .catch(function () {
+      res.render('404');
+    });
 };

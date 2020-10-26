@@ -60,27 +60,24 @@ Post.prototype.create = function () {
   });
 };
 
-// NOTE: mongodb code to filter user avatar and user username and display into ui
-Post.findSingleById = function (id) {
+// NOTE: mongodb code to filter user avatar user username user ids and posts and display into ui
+// ! This function was created so we don't repeat almost the same code to use in the two function bellow
+Post.reUsablePostQuery = function (uniqueOperations) {
   return new Promise(async function (resolve, reject) {
-    if (typeof id != 'string' || !ObjectID.isValid(id)) {
-      reject();
-      return;
-    }
-    let posts = await postsCollection
-      .aggregate([
-        { $match: { _id: new ObjectID(id) } },
-        { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorDocument' } },
-        {
-          $project: {
-            title: 1,
-            body: 1,
-            createdDate: 1,
-            author: { $arrayElemAt: ['$authorDocument', 0] },
-          },
+    let aggOperations = uniqueOperations.concat([
+      { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorDocument' } },
+      {
+        $project: {
+          title: 1,
+          body: 1,
+          createdDate: 1,
+          author: { $arrayElemAt: ['$authorDocument', 0] },
         },
-      ])
-      .toArray();
+      },
+    ]);
+
+    let posts = await postsCollection.aggregate(aggOperations).toArray();
+
     // clean up author property in each post object
     posts = posts.map(function (post) {
       post.author = {
@@ -90,6 +87,19 @@ Post.findSingleById = function (id) {
 
       return post;
     });
+    resolve(posts);
+  });
+};
+
+// NOTE: mongodb code to filter user avatar and user username and display into ui
+Post.findSingleById = function (id) {
+  return new Promise(async function (resolve, reject) {
+    if (typeof id != 'string' || !ObjectID.isValid(id)) {
+      reject();
+      return;
+    }
+
+    let posts = await Post.reUsablePostQuery([{ $match: { _id: new ObjectID(id) } }]);
 
     if (posts.length) {
       console.log(posts[0]);
@@ -98,6 +108,13 @@ Post.findSingleById = function (id) {
       reject();
     }
   });
+};
+
+// NOTE: mongodb code to filter user id and user posts and display into ui
+Post.findByAuthorId = function (authorId) {
+  // NOTE: $sort to sort by ascending or descending order
+  console.log(Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]));
+  return Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]);
 };
 
 module.exports = Post;
