@@ -102,7 +102,7 @@ Post.findSingleById = function (id) {
     let posts = await Post.reUsablePostQuery([{ $match: { _id: new ObjectID(id) } }]);
 
     if (posts.length) {
-      console.log(posts[0]);
+      // console.log(posts[0]);
       resolve(posts[0]);
     } else {
       reject();
@@ -113,7 +113,7 @@ Post.findSingleById = function (id) {
 // NOTE: mongodb code to filter user id and user posts and display into ui
 Post.findByAuthorId = function (authorId) {
   // NOTE: $sort to sort by ascending or descending order
-  console.log(Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]));
+  // console.log(Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]));
   return Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]);
 };
 

@@ -85,11 +85,11 @@ exports.home = function (req, res) {
 
 // NOTE: User profile screen, showing the useer's profile
 exports.ifUserExists = function (req, res, next) {
-  console.log(req.params.username);
+  // console.log(req.params.username);
   // NOTE: Finding the user by username from the request of the browser
   User.findByUsername(req.params.username)
     .then(function (userDocument) {
-      console.log(userDocument);
+      // console.log(userDocument);
       // NOTE: creating a new profileUser property inside the request and store the userDocument into it to pass in another function
       req.profileUser = userDocument;
       next();

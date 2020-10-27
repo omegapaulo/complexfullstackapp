@@ -157,12 +157,12 @@ User.findByUsername = function (username) {
         username: username,
       })
       .then(function (userDoc) {
-        console.log(userDoc);
+        // console.log(userDoc);
         if (userDoc) {
           // NOTE: Making a new userDoc from the userDoc param
           // NOTE: The true param gives us the avatar
           userDoc = new User(userDoc, true);
-          console.log(userDoc);
+          // console.log(userDoc);
           // NOTE: Specifying what i want from the userDoc that will be shown
           userDoc = { _id: userDoc.data._id, username: userDoc.data.username, avatar: userDoc.avatar };
           resolve(userDoc);
