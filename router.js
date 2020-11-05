@@ -30,8 +30,10 @@ router.post('/create-post', userController.mustBeLoggedIn, postController.create
 // NOTE: viewing single posts
 router.get('/post/:id', postController.viewSingle);
 // NOTE: editing single posts
-router.get('/post/:id/edit', postController.viewEditScreen);
+router.get('/post/:id/edit', userController.mustBeLoggedIn, postController.viewEditScreen);
 // NOTE: submiting the edited single posts
-router.post('/post/:id/edit', postController.edit);
+router.post('/post/:id/edit', userController.mustBeLoggedIn, postController.edit);
+// NOTE: Deleting posts
+router.post('/post/:id/delete', userController.mustBeLoggedIn, postController.delete);
 
 module.exports = router;

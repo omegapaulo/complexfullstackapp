@@ -6,6 +6,10 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 // NOTE: A package to set flash messages (tell the user if there is an error)
 const flash = require('connect-flash');
+// NOTE: Requiring markedown package
+const markdown = require('marked');
+// NOTE: Package to sanitize html coming from the frontend so we don't get malicious js
+const sanitizeHTML = require('sanitize-html');
 // NOTE: Using express app
 const app = express();
 
@@ -17,6 +21,7 @@ const sessionOptions = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
+    // Setting how long the cookie will be saved in the browser
     maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
   },
@@ -28,8 +33,16 @@ app.use(sessionOptions);
 app.use(flash());
 
 // NOTE: Creating a middleware function to use for all routes user verifications
+// The res. locals property is an object that contains response local variables scoped to the request and because of this, it is only available to the view(s) rendered during that request/response cycle
 //! Must always be before the router constant to work
 app.use(function (req, res, next) {
+  // NOTE: Make our markdown funcion available from within ejs templates
+  res.locals.filterUserHTML = (content) => {
+    return sanitizeHTML(markdown(content), {
+      allowedTags: ['p', 'br', 'ul', 'ol', 'li', 'strong', 'bold', 'i', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+      allowedAttributes: {},
+    });
+  };
   // NOTE: Make all errors and success flash messages available from all templates
   res.locals.errors = req.flash('errors');
   res.locals.success = req.flash('success');

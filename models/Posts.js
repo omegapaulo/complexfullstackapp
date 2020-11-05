@@ -2,6 +2,8 @@
 const postsCollection = require('../db').db().collection('posts');
 // NOTE: Mongodb ID object to be used as best practices
 const ObjectID = require('mongodb').ObjectID;
+// NOTE: Package to sanitize html coming from the frontend so we don't get malicious js
+const sanitizeHTML = require('sanitize-html');
 
 const User = require('./User');
 
@@ -22,9 +24,10 @@ Post.prototype.cleanUp = function () {
   }
 
   // NOTE: Making sure no bogus properties are included with the posts
+  // NOTE: Using the sanitize package to make sure no bogus properties are included with the posts
   this.data = {
-    title: this.data.title.trim(),
-    body: this.data.body.trim(),
+    title: sanitizeHTML(this.data.title.trim(), { allowedTags: [], allowedAttributes: {} }),
+    body: sanitizeHTML(this.data.body.trim(), { allowedTags: [], allowedAttributes: {} }),
     createdDate: new Date(),
     author: ObjectID(this.userId),
   };
@@ -48,8 +51,8 @@ Post.prototype.create = function () {
       // save post into database
       postsCollection
         .insertOne(this.data)
-        .then(() => {
-          resolve();
+        .then((info) => {
+          resolve(info.ops[0]._id);
         })
         .catch(() => {
           this.errors.push('Please try again later.');
@@ -152,6 +155,23 @@ Post.findByAuthorId = function (authorId) {
   // NOTE: $sort to sort by ascending or descending order
   // console.log(Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]));
   return Post.reUsablePostQuery([{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }]);
+};
+
+// NOTE: Deleting posts from mongo db
+Post.delete = function (postIdToDelete, currentUserId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let post = await Post.findSingleById(postIdToDelete, currentUserId);
+      if (post.isVisitorOwner) {
+        await postsCollection.deleteOne({ _id: new ObjectID(postIdToDelete) });
+        resolve();
+      } else {
+        reject();
+      }
+    } catch {
+      reject();
+    }
+  });
 };
 
 module.exports = Post;

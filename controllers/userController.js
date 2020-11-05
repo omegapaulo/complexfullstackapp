@@ -3,7 +3,7 @@ const User = require('../models/User');
 // NOTE: Requiring the post constructor function from the models folder
 const Post = require('../models/Posts');
 
-// NOTE: A function to check if the user is logged in or not
+// NOTE: A function to check if the user is logged in or not to protect
 exports.mustBeLoggedIn = function (req, res, next) {
   // If there is a user call next function
   if (req.session.user) {
