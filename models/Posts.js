@@ -5,10 +5,11 @@ const ObjectID = require('mongodb').ObjectID;
 
 const User = require('./User');
 
-const Post = function (data, userId) {
+const Post = function (data, userId, requestedPostId) {
   this.data = data;
   this.errors = [];
   this.userId = userId;
+  this.requestedPostId = requestedPostId;
 };
 
 Post.prototype.cleanUp = function () {
@@ -60,9 +61,40 @@ Post.prototype.create = function () {
   });
 };
 
+Post.prototype.update = function () {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const post = await Post.findSingleById(this.requestedPostId, this.userId);
+      if (post.isVisitorOwner) {
+        // Update post in db
+        const status = await this.actuallyUpdate();
+        // console.log(status);
+        resolve(status);
+      } else {
+        reject();
+      }
+    } catch (error) {
+      reject();
+    }
+  });
+};
+
+Post.prototype.actuallyUpdate = function () {
+  return new Promise(async (resolve, reject) => {
+    this.cleanUp();
+    this.validate();
+    if (!this.errors.length) {
+      await postsCollection.findOneAndUpdate({ _id: new ObjectID(this.requestedPostId) }, { $set: { title: this.data.title, body: this.data.body } });
+      resolve('success');
+    } else {
+      resolve('failure');
+    }
+  });
+};
+
 // NOTE: mongodb code to filter user avatar user username user ids and posts and display into ui
 // ! This function was created so we don't repeat almost the same code to use in the two function bellow
-Post.reUsablePostQuery = function (uniqueOperations) {
+Post.reUsablePostQuery = function (uniqueOperations, visitorId) {
   return new Promise(async function (resolve, reject) {
     let aggOperations = uniqueOperations.concat([
       { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorDocument' } },
@@ -71,6 +103,7 @@ Post.reUsablePostQuery = function (uniqueOperations) {
           title: 1,
           body: 1,
           createdDate: 1,
+          authorId: '$author',
           author: { $arrayElemAt: ['$authorDocument', 0] },
         },
       },
@@ -80,6 +113,9 @@ Post.reUsablePostQuery = function (uniqueOperations) {
 
     // clean up author property in each post object
     posts = posts.map(function (post) {
+      // NOTE-. check if visitor is owner of the post
+      // NOTE-. equals is a mongodb method that return true or false
+      post.isVisitorOwner = post.authorId.equals(visitorId);
       post.author = {
         username: post.author.username,
         avatar: new User(post.author, true).avatar,
@@ -92,14 +128,15 @@ Post.reUsablePostQuery = function (uniqueOperations) {
 };
 
 // NOTE: mongodb code to filter user avatar and user username and display into ui
-Post.findSingleById = function (id) {
+// NOTE: visitorId param determines if the user is logged in or not from the postController.js viewSingle function
+Post.findSingleById = function (id, visitorId) {
   return new Promise(async function (resolve, reject) {
     if (typeof id != 'string' || !ObjectID.isValid(id)) {
       reject();
       return;
     }
 
-    let posts = await Post.reUsablePostQuery([{ $match: { _id: new ObjectID(id) } }]);
+    let posts = await Post.reUsablePostQuery([{ $match: { _id: new ObjectID(id) } }], visitorId);
 
     if (posts.length) {
       // console.log(posts[0]);

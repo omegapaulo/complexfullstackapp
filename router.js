@@ -29,5 +29,9 @@ router.get('/create-post', userController.mustBeLoggedIn, postController.viewCre
 router.post('/create-post', userController.mustBeLoggedIn, postController.create);
 // NOTE: viewing single posts
 router.get('/post/:id', postController.viewSingle);
+// NOTE: editing single posts
+router.get('/post/:id/edit', postController.viewEditScreen);
+// NOTE: submiting the edited single posts
+router.post('/post/:id/edit', postController.edit);
 
 module.exports = router;

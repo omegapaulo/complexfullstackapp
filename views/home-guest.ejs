@@ -2,6 +2,8 @@
 
 <div class="container py-md-5">
 
+  <%- include('includes/flash') %>
+
   <% errors.forEach(function(message){%>
   <div class="alert alert-danger text-center"> <%= message %> </div>
   <% }) %>

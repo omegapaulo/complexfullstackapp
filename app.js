@@ -30,6 +30,17 @@ app.use(flash());
 // NOTE: Creating a middleware function to use for all routes user verifications
 //! Must always be before the router constant to work
 app.use(function (req, res, next) {
+  // NOTE: Make all errors and success flash messages available from all templates
+  res.locals.errors = req.flash('errors');
+  res.locals.success = req.flash('success');
+  // NOTE: Make current user ID available on the request object
+  if (req.session.user) {
+    req.visitorId = req.session.user._id;
+  } else {
+    req.visitorId = 0;
+  }
+
+  // NOTE: Make user session data available from within view templates
   res.locals.user = req.session.user;
   next();
 });

@@ -79,7 +79,7 @@ exports.home = function (req, res) {
     res.render('home-dashboard');
   } else {
     // NOTE:Rendering the home page plus error messages from error array in the User.js file with the flush package and show it to the user if the login is incorrect or the register is empty
-    res.render('home-guest', { errors: req.flash('errors'), registerFormErrors: req.flash('registerFormErrors') });
+    res.render('home-guest', { registerFormErrors: req.flash('registerFormErrors') });
   }
 };
 
