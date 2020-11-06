@@ -123,3 +123,14 @@ exports.delete = function (req, res) {
       });
     });
 };
+
+// Searching for posts and deliver them the browser
+exports.search = function (req, res) {
+  Post.search(req.body.searchTerm)
+    .then((posts) => {
+      res.json(posts);
+    })
+    .catch(() => {
+      res.json([]);
+    });
+};

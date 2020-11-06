@@ -35,5 +35,7 @@ router.get('/post/:id/edit', userController.mustBeLoggedIn, postController.viewE
 router.post('/post/:id/edit', userController.mustBeLoggedIn, postController.edit);
 // NOTE: Deleting posts
 router.post('/post/:id/delete', userController.mustBeLoggedIn, postController.delete);
+// NOTE:Searching for posts
+router.post('/search', postController.search);
 
 module.exports = router;

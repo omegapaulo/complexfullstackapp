@@ -119,6 +119,12 @@ Post.reUsablePostQuery = function (uniqueOperations, visitorId) {
       // NOTE-. check if visitor is owner of the post
       // NOTE-. equals is a mongodb method that return true or false
       post.isVisitorOwner = post.authorId.equals(visitorId);
+
+      // Removing the author id from the browser
+      post.authorId = undefined; // This method is faster
+
+      // delete post.authorId; //! This method is much slower, avoid.
+
       post.author = {
         username: post.author.username,
         avatar: new User(post.author, true).avatar,
@@ -169,6 +175,18 @@ Post.delete = function (postIdToDelete, currentUserId) {
         reject();
       }
     } catch {
+      reject();
+    }
+  });
+};
+
+// NOTE: Searching for posts
+Post.search = function (searchTerm) {
+  return new Promise(async (resolve, reject) => {
+    if (typeof searchTerm == 'string') {
+      const posts = await Post.reUsablePostQuery([{ $match: { $text: { $search: searchTerm } } }, { $sort: { score: { $meta: 'textScore' } } }]);
+      resolve(posts);
+    } else {
       reject();
     }
   });
