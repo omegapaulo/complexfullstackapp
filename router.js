@@ -6,6 +6,8 @@ const router = express.Router();
 const userController = require('./controllers/userController');
 //NOTE: Getting the functions from controllers folder in the postCotroller file
 const postController = require('./controllers/postController');
+//NOTE: Getting the functions from controllers folder in the followCotroller file
+const followController = require('./controllers/followController');
 
 //? User related routes
 //NOTE: Using the home function from the userController file
@@ -19,7 +21,9 @@ router.post('/logout', userController.logout);
 
 //? Profile related routes
 //NOTE: Using the profile function from the userController file
-router.get('/profile/:username', userController.ifUserExists, userController.profilePostsScreen);
+router.get('/profile/:username', userController.ifUserExists, userController.sharedProfileData, userController.profilePostsScreen);
+router.get('/profile/:username/followers', userController.ifUserExists, userController.sharedProfileData, userController.profileFollowersScreen);
+router.get('/profile/:username/following', userController.ifUserExists, userController.sharedProfileData, userController.profileFollowingScreen);
 
 //? Posts related routes
 // NOTE: Using the create posts function from the postController.js
@@ -37,5 +41,9 @@ router.post('/post/:id/edit', userController.mustBeLoggedIn, postController.edit
 router.post('/post/:id/delete', userController.mustBeLoggedIn, postController.delete);
 // NOTE:Searching for posts
 router.post('/search', postController.search);
+
+//? Follow related routes
+router.post('/addFollow/:username', userController.mustBeLoggedIn, followController.addFollow);
+router.post('/removeFollow/:username', userController.mustBeLoggedIn, followController.removeFollow);
 
 module.exports = router;
