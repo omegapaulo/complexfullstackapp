@@ -1,6 +1,7 @@
 import axios from 'axios';
 import DOMPurify from 'dompurify';
 
+// imported Search class in main.js file
 export default class Search {
   // 1. Select DOM elements, && keep track of useful data
   constructor() {
