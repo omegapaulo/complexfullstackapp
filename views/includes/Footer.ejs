@@ -6,6 +6,8 @@
 <!-- chat feature div if user is logged in -->
 <% if(user) { %>
   <div class="chat-wrapper shadow border-top border-left border-right" id="chat-wrapper"></div>
+  <!-- socket.io for the frontend script -->
+  <script src="/socket.io/socket.io.js"></script>
   <% } %>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"

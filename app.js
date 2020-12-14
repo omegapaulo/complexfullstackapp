@@ -60,6 +60,7 @@ app.use(function (req, res, next) {
 
 // NOTE: Requiring router form router file
 const router = require('./router');
+const { Socket } = require('net');
 
 // NOTE: Express boiler plate, must use in all express app
 // NOTE: tells express to add our user submit data to express so we can use it in request.body
@@ -80,5 +81,43 @@ app.set('view engine', 'ejs');
 // NOTE: Telling express to use the router functions from the router.js file
 app.use('/', router);
 
-// NOTE: exporting the express app to be launched from the database db.js
-module.exports = app;
+// Requirering the http obj from node.js and calling a createServer method nad passing the express app to it
+const server = require('http').createServer(app);
+
+const io = require('socket.io')(server);
+
+// Leting socket use the session obj from express so we have access to the current user
+io.use((socket, next) => {
+  sessionOptions(socket.request, socket.request.res, next);
+});
+
+// Open a connection to the socket.io
+// called in chat.js file
+io.on('connection', function (socket) {
+  // receiving the message from the browser
+
+  // Only if the user is logged in
+  if (socket.request.session.user) {
+    // Getting the logged in user full info
+    let user = socket.request.session.user;
+
+    socket.emit('welcome', { username: user.username, avatar: user.avatar });
+
+    socket.on('chatMessageFromBrowser', (data) => {
+      //? socket.emit() is to be used if i want to send the message to the browser that sent me the message (one on one chat)
+
+      // io.emit() is to send the message to all connected parties including yourself
+      // socket.broadcast.emit() is to send the message to all connected parties except yourself
+      socket.broadcast.emit('chatMessageFromServer', {
+        message: sanitizeHTML(data.message, { allowedTags: [], allowedAttributes: {} }),
+        username: user.username,
+        avatar: user.avatar,
+      });
+    });
+  }
+});
+
+// NOTE: exporting the express app from the server variable to be launched from the database db.js
+// The server variable now powers the express app and the socket.io
+// module.exports = app;
+module.exports = server;
