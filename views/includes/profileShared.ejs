@@ -1,7 +1,8 @@
 <h2><img src="<%= profileAvatar %>" alt="profile picture" class="avatar-small">
   <%= profileUsername %>
     <!-- If user is logged in and it's your profile you don't see the follow button -->
-    <% if (user && !isVisitorsProfile) { // if logged in user is already following if (isFollowing) { %>
+    <% if (user && !isVisitorsProfile) { if (isFollowing) { %>
+      <!-- if logged in user is already following --->
       <form class="ml-2 d-inline" action="/removeFollow/<%= profileUsername %>" method="POST">
         <button class="btn btn-danger btn-sm">Stop Following <i class="fas fa-user-times"></i></button>
       </form>

@@ -18,6 +18,8 @@ router.post('/register', userController.register);
 router.post('/login', userController.login);
 //NOTE: Using the logout function from the userController file
 router.post('/logout', userController.logout);
+// NOTE: using the doesUsernameExist function from the userController file
+router.post('/doesUsernameExist', userController.doesUsernameExist);
 
 //? Profile related routes
 //NOTE: Using the profile function from the userController file
