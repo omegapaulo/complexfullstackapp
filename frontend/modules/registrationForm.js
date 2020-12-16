@@ -2,21 +2,56 @@ import Axios from 'axios';
 
 export default class RegistrationForm {
   constructor() {
+    this.form = document.querySelector('#registration-form');
     this.allFields = document.querySelectorAll('#registration-form .form-control');
     this.insertValidationElement();
     this.username = document.querySelector('#username-register');
     this.username.previousValue = '';
+    this.email = document.querySelector('#email-register');
+    this.email.previousValue = '';
+    this.password = document.querySelector('#password-register');
+    this.password.previousValue = '';
+    // The email and password are false when page run first so the http req will update these values
+    this.username.isUnique = false;
+    this.email.isUnique = false;
     this.events();
   }
 
-  // events
+  //! events
   events() {
+    this.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.formSubmitHandler();
+    });
+
     this.username.addEventListener('keyup', () => {
       this.isDifferent(this.username, this.usernameHandler);
     });
+
+    this.email.addEventListener('keyup', () => {
+      this.isDifferent(this.email, this.emailHandler);
+    });
+
+    this.password.addEventListener('keyup', () => {
+      this.isDifferent(this.password, this.passwordHandler);
+    });
+
+    // Using onblur event to catch errors when user input loses focus
+    this.username.addEventListener('blur', () => {
+      this.isDifferent(this.username, this.usernameHandler);
+    });
+
+    this.email.addEventListener('blur', () => {
+      this.isDifferent(this.email, this.emailHandler);
+    });
+
+    this.password.addEventListener('blur', () => {
+      this.isDifferent(this.password, this.passwordHandler);
+    });
   }
 
-  // methods
+  //! methods
   // ? Reusable function for the validation
   isDifferent(elem, usernameHandler) {
     // check if the input value has changed
@@ -28,6 +63,23 @@ export default class RegistrationForm {
     // set previous value to current value
     elem.previousValue = elem.value;
   }
+
+  // NOTE: FORM VALIDATION FIELD
+  formSubmitHandler() {
+    // Running all validations on the form submit
+    this.usernameAfterDelay();
+    this.usernameImmediately();
+    this.emailAfterDelay();
+    this.passwordAfterDelay();
+    this.passwordImmediately();
+
+    if (this.username.isUnique && !this.username.errors && this.email.isUnique && !this.email.errors && !this.password.errors) {
+      // If all the statements are true call the submit method on the form
+      this.form.submit();
+    }
+  }
+
+  // NOTE: USERNAME VALIDATION FIELD
 
   usernameHandler() {
     // creating a errors property to the elem and set it to false
@@ -98,5 +150,77 @@ export default class RegistrationForm {
     this.allFields.forEach((elem) => {
       elem.insertAdjacentHTML('afterend', '<div class="alert alert-danger small liveValidateMessage"></div>');
     });
+  }
+
+  // NOTE: EMAIL FIELD VALIDATION
+
+  emailHandler() {
+    // creating a errors property to the elem and set it to false
+    this.email.errors = false;
+    // code to run after a certain delay (when the user stops typing for a certain period of time)
+    clearTimeout(this.email.timer);
+    // creating a timer property in the email method and set it to a timeout function
+    this.email.timer = setTimeout(() => {
+      this.emailAfterDelay();
+    }, 800);
+
+    console.log(this.email);
+  }
+
+  emailAfterDelay() {
+    // Checking if email has valid characters
+    if (!/^\S+@\S+$/.test(this.email.value)) {
+      this.showValdationError(this.email, 'You must provide a valid email');
+    }
+
+    // Checking the db if the email is allready in use
+    if (!this.email.errors) {
+      Axios.post('/doesEmailExist', { email: this.email.value })
+        .then((response) => {
+          if (response.data) {
+            this.email.isUnique = false;
+            this.showValdationError(this.email, 'This email already exists');
+          } else {
+            this.email.isUnique = true;
+            this.hideValdationError(this.email);
+          }
+        })
+        .catch((err) => {
+          console.log(err, 'server error');
+        });
+    }
+  }
+
+  // NOTE: PASSWORD FIELD VALIDATION
+
+  passwordHandler() {
+    // creating a errors property to the elem and set it to false
+    this.password.errors = false;
+    // code to run immediately when invalid character is added
+    this.passwordImmediately();
+    // code to run after a certain delay (when the user stops typing for a certain period of time)
+    clearTimeout(this.password.timer);
+    // creating a timer property in the password method and set it to a timeout function
+    this.password.timer = setTimeout(() => {
+      this.passwordAfterDelay();
+    }, 800);
+
+    console.log(this.password);
+  }
+
+  passwordImmediately() {
+    if (this.password.value.length > 30) {
+      this.showValdationError(this.password, 'Password can not be less than 30 characters');
+    }
+
+    if (!this.password.errors) {
+      this.hideValdationError(this.password);
+    }
+  }
+
+  passwordAfterDelay() {
+    if (this.password.value.length < 8) {
+      this.showValdationError(this.password, 'Password must be at least 8 characters');
+    }
   }
 }

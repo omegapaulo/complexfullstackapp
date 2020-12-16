@@ -203,6 +203,7 @@ exports.profileFollowingScreen = async function (req, res) {
 };
 
 // NOTE: Checking if the user name already exists in th db
+// Used in User.js file
 exports.doesUsernameExist = function (req, res) {
   User.findByUsername(req.body.username)
     .then(function () {
@@ -211,4 +212,12 @@ exports.doesUsernameExist = function (req, res) {
     .catch(function () {
       res.json(false);
     });
+};
+
+// NOTE: Checking if the email already exists in th db
+// Used in User.js file
+exports.doesEmailExist = async function (req, res) {
+  let emailBool = await User.doesEmailExist(req.body.email);
+
+  res.json(emailBool);
 };
