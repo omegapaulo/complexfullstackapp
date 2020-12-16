@@ -68,7 +68,7 @@ export default class RegistrationForm {
     elem.nextElementSibling.innerHTML = message;
     elem.nextElementSibling.classList.add('liveValidateMessage--visible');
 
-    // creating an errors property to the elem and set it to true
+    // creating errors property to the elem and set it to true
     elem.errors = true;
   }
 
