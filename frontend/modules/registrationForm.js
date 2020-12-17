@@ -2,6 +2,8 @@ import Axios from 'axios';
 
 export default class RegistrationForm {
   constructor() {
+    // Grabing the csrf token from the html file
+    this._csrf = document.querySelector('[name="_csrf"]').value;
     this.form = document.querySelector('#registration-form');
     this.allFields = document.querySelectorAll('#registration-form .form-control');
     this.insertValidationElement();
@@ -131,7 +133,8 @@ export default class RegistrationForm {
 
     // check if the username exists already in the db but only after all the errors check has passed
     if (!this.username.errors) {
-      Axios.post('/doesUsernameExist', { username: this.username.value })
+      //! Using csrf in here with axios request
+      Axios.post('/doesUsernameExist', { _csrf: this._csrf, username: this.username.value })
         .then((response) => {
           if (response.data) {
             this.showValdationError(this.username, 'That username is already taken');
@@ -175,7 +178,8 @@ export default class RegistrationForm {
 
     // Checking the db if the email is allready in use
     if (!this.email.errors) {
-      Axios.post('/doesEmailExist', { email: this.email.value })
+      //! Using the csrf with Axios request here
+      Axios.post('/doesEmailExist', { _csrf: this._csrf, email: this.email.value })
         .then((response) => {
           if (response.data) {
             this.email.isUnique = false;

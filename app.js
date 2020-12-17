@@ -10,6 +10,8 @@ const flash = require('connect-flash');
 const markdown = require('marked');
 // NOTE: Package to sanitize html coming from the frontend so we don't get malicious js
 const sanitizeHTML = require('sanitize-html');
+// A package to stop csrf
+const csrf = require('csurf');
 // NOTE: Using express app
 const app = express();
 
@@ -78,8 +80,31 @@ app.set('views', 'views');
 // NOTE: Telling express to use ejs as template engine
 app.set('view engine', 'ejs');
 
+// NOTE: Cross site request forgery prevention
+app.use(csrf());
+
+app.use(function (req, res, next) {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 // NOTE: Telling express to use the router functions from the router.js file
 app.use('/', router);
+
+// Handling the error from the csrf cross site attacks
+//!The csrfToken is added to all the routes in the sites html forms and in some axios requests in js files
+app.use(function (err, req, res, next) {
+  if (err) {
+    if (err.code == 'EBADCSRFTOKEN') {
+      req.flash('errors', 'Cross site request forgery detected');
+      req.session.save(() => {
+        res.redirect('/');
+      });
+    } else {
+      res.render('404');
+    }
+  }
+});
 
 // Requirering the http obj from node.js and calling a createServer method nad passing the express app to it
 const server = require('http').createServer(app);
