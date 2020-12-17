@@ -4,6 +4,8 @@ const User = require('../models/User');
 const Post = require('../models/Posts');
 // NOTE: Requiring the follow constructor function from the models folder
 const Follow = require('../models/Follow');
+// Json web token for authenticate the user in the API
+const jwt = require('jsonwebtoken');
 
 // NOTE: A function to check if current user is following other profile or not
 // It will run for a profile routes. ex: posts route, followers route, following route
@@ -78,6 +80,45 @@ exports.login = (req, res) => {
       });
     });
 };
+
+// Our API code starts here, this function is the same as the login function above minus all the user data sent to the web
+// NOTE: Sending these function to the router-api.js
+exports.apiLogin = (req, res) => {
+  const user = new User(req.body);
+  // NOTE: loging in the user from the user.js
+  user
+    .login()
+    .then(function (result) {
+      res.json(jwt.sign({ _id: user.data._id }, process.env.JWTSECRET, { expiresIn: '7d' }));
+    })
+    .catch(function (err) {
+      res.json('sorry you must provide a valid token');
+    });
+};
+
+exports.apiMustBeLoggedIn = function (req, res, next) {
+  try {
+    // If the incoming token is valid, save the incoming object in the request object
+    req.apiUser = jwt.verify(req.body.token, process.env.JWTSECRET);
+    next();
+  } catch (error) {
+    // if not
+    res.json('Sorry, you must provide a valid token');
+  }
+};
+
+// for everyone to see the posts no need the jwt auth
+exports.apiGetPostsByUsername = async function (req, res) {
+  try {
+    let authorDoc = await User.findByUsername(req.params.username);
+    let posts = await Post.findByAuthorId(authorDoc._id);
+    res.json(posts);
+  } catch (error) {
+    res.json('Sorry, invalid user requested.');
+  }
+};
+
+// Our api code ends here
 
 exports.logout = (req, res) => {
   // NOTE: Destroying all the session info upon logout

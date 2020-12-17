@@ -26,6 +26,35 @@ exports.create = function (req, res) {
     });
 };
 
+// API code starts here
+//!
+exports.apiCreate = function (req, res) {
+  // NOTE: Getting the user ID from the userController.js file
+  let post = new Post(req.body, req.apiUser._id);
+  post
+    .create()
+    .then(function (newId) {
+      // If we are really creating an real API we must pass in the newId in the res.json
+      // res.json(newId)
+      res.json('Congrats.');
+    })
+    .catch(function (errors) {
+      res.json(errors);
+    });
+};
+
+exports.apiDelete = function (req, res) {
+  // Passing the post id to be deleted and the api user id
+  Post.delete(req.params.id, req.apiUser._id)
+    .then(() => {
+      res.json('Success');
+    })
+    .catch(() => {
+      res.json('You do not have permission to perform this action');
+    });
+};
+// API code ends here
+
 exports.viewSingle = async function (req, res) {
   try {
     let post = await Post.findSingleById(req.params.id, req.visitorId);

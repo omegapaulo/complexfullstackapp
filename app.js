@@ -15,6 +15,16 @@ const csrf = require('csurf');
 // NOTE: Using express app
 const app = express();
 
+// NOTE: Express boiler plate, must use in all express app
+// NOTE: tells express to add our user submit data to express so we can use it in request.body
+// NOTE: App receives a traditional html form submit
+app.use(express.urlencoded({ extended: false }));
+// NOTE: App receives a json data format
+app.use(express.json());
+
+//? API route starts here
+app.use('/api', require('./router-api'));
+
 // NOTE: Customizing session options
 const sessionOptions = session({
   secret: 'omazing',
@@ -63,13 +73,6 @@ app.use(function (req, res, next) {
 // NOTE: Requiring router form router file
 const router = require('./router');
 const { Socket } = require('net');
-
-// NOTE: Express boiler plate, must use in all express app
-// NOTE: tells express to add our user submit data to express so we can use it in request.body
-// NOTE: App receives a traditional html form submit
-app.use(express.urlencoded({ extended: false }));
-// NOTE: App receives a json data format
-app.use(express.json());
 
 // NOTE: Serving static files from the public folder with express
 app.use(express.static('public'));
